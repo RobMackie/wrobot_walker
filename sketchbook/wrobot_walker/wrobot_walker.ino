@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <RingBuffer.h>
 
 #define PIN_ROLE_I2C_MASTER 2
 
@@ -9,13 +10,14 @@ void setup() {
   } else {
       Wire.begin(8);                // join i2c bus with address #8
       Wire.onReceive(receiveEvent); // register event
-      Serial.begin(9600);   
+      Serial.begin(9600);
   }
   // setup that applies to both boards
   pinMode(PIN_ROLE_I2C_MASTER, INPUT_PULLUP);  
 }
 
 byte x = 0;
+RingBuffer inputRing();
 
 void loop() {
   if (is_master_i2c()) {
@@ -39,9 +41,15 @@ void loop() {
 // this function is registered as an event, see setup()
 void receiveEvent(int howMany) {
     while (1 < Wire.available()) { // loop through all but the last
-        char c = Wire.read();      // receive byte as a character
+        int msg = Wire.read();      // receive byte as a character
         Serial.print(c);           // print the character
+        if(inputRing.spaceAvailable()) {
+            inputRing.write(msg);
+        } else {
+            inputRing.markOverflow();
+        }
     }
+    
     int x = Wire.read();        // receive byte as an integer
     Serial.println(x);          // print the integer
 }
