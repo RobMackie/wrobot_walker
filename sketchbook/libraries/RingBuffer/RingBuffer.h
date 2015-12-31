@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 class RingBuffer {
 
     public:
@@ -23,3 +25,4 @@ class RingBuffer {
        int tail;
        int overflow;
 }
+
